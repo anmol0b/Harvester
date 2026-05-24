@@ -1,0 +1,15 @@
+# Rust / Anchor
+program/target/
+program/.anchor/
+
+# Node
+node_modules/
+indexer/dist/
+frontend/.next/
+
+# Env
+.env
+.env.local
+
+# OS
+.DS_Store
