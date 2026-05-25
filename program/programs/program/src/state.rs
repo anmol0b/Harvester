@@ -4,13 +4,12 @@ use anchor_lang::prelude::*;
 pub struct GlobalConfig {
     pub admin: Pubkey,
     pub yield_rate_bps: u64,
-    pub yield_mint: Pubkey,
     pub paused: bool,
     pub bump: u8,
 }
 
 impl GlobalConfig {
-    pub const LEN: usize = 8 + 32 + 8 + 32 + 1 + 1;
+    pub const LEN: usize = 8 + 32 + 8 + 1 + 1;
 }
 
 #[account]
@@ -30,17 +29,11 @@ impl UserPosition {
 
     pub fn calculate_yield(&self, rate_bps: u64, now: i64) -> Option<u64> {
         let elapsed = now.checked_sub(self.last_claim_timestamp)? as u64;
-        let amount = self.amount as u128;
-        let rate = rate_bps as u128;
-        let elapsed = elapsed as u128;
-        let secs = Self::SECONDS_PER_YEAR as u128;
-
-        let result = amount
-            .checked_mul(rate)?
-            .checked_mul(elapsed)?
+        let result = (self.amount as u128)
+            .checked_mul(rate_bps as u128)?
+            .checked_mul(elapsed as u128)?
             .checked_div(10_000)?
-            .checked_div(secs)?;
-
+            .checked_div(Self::SECONDS_PER_YEAR as u128)?;
         u64::try_from(result).ok()
     }
 }

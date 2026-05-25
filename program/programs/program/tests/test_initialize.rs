@@ -1,32 +1,53 @@
+#[cfg(test)]
+mod tests {
+    use litesvm::LiteSVM;
+    use solana_keypair::Keypair;
+    use solana_signer::Signer;
+    use solana_transaction::Transaction;
+    use anchor_lang::{InstructionData, ToAccountMetas, prelude::Pubkey, system_program};
+    use program::accounts::Initialize;
+    use program::instruction::Initialize as InitializeIx;
 
-use {
-    anchor_lang::{solana_program::instruction::Instruction, InstructionData, ToAccountMetas},
-    litesvm::LiteSVM,
-    solana_message::{Message, VersionedMessage},
-    solana_signer::Signer,
-    solana_keypair::Keypair,
-    solana_transaction::versioned::VersionedTransaction,
-};
+    #[test]
+    fn test_initialize() {
+        let mut svm = LiteSVM::new();
 
-#[test]
-fn test_initialize() {
-    let program_id = program::id();
-    let payer = Keypair::new();
-    let mut svm = LiteSVM::new();
-    let bytes = include_bytes!("../../../target/deploy/program.so");
-    svm.add_program(program_id, bytes).unwrap();
-    svm.airdrop(&payer.pubkey(), 1_000_000_000).unwrap();
-    
-    let instruction = Instruction::new_with_bytes(
-        program_id,
-        &program::instruction::Initialize {}.data(),
-        program::accounts::Initialize {}.to_account_metas(None),
-    );
+        // Load the compiled program into LiteSVM
+        svm.add_program_from_file(
+            program::ID,
+            "../../target/deploy/program.so",
+        ).expect("Failed to load program — run `anchor build` first");
 
-    let blockhash = svm.latest_blockhash();
-    let msg = Message::new_with_blockhash(&[instruction], Some(&payer.pubkey()), &blockhash);
-    let tx = VersionedTransaction::try_new(VersionedMessage::Legacy(msg), &[payer]).unwrap();
+        let admin = Keypair::new();
+        svm.airdrop(&admin.pubkey(), 1_000_000_000).unwrap();
 
-    let res = svm.send_transaction(tx);
-    assert!(res.is_ok());
+        let (config_pda, _bump) = Pubkey::find_program_address(
+            &[b"config"],
+            &program::ID,
+        );
+
+        let accounts = Initialize {
+            admin: admin.pubkey(),
+            config: config_pda,
+            system_program: system_program::ID,
+        };
+
+        let ix = solana_transaction::Instruction {
+            program_id: program::ID,
+            accounts: accounts.to_account_metas(None),
+            data: InitializeIx { yield_rate_bps: 500 }.data(),
+        };
+
+        let hash = svm.latest_blockhash();
+        let tx = Transaction::new_signed_with_payer(
+            &[ix],
+            Some(&admin.pubkey()),
+            &[&admin],
+            hash,
+        );
+
+        let result = svm.send_transaction(tx);
+        assert!(result.is_ok(), "initialize failed: {:?}", result);
+        println!("✓ initialize passed");
+    }
 }
