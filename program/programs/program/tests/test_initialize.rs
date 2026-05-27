@@ -8,6 +8,7 @@ mod tests {
     use program::accounts::Initialize;
     use program::instruction::Initialize as InitializeIx;
 
+    
     #[test]
     fn test_initialize() {
         let mut svm = LiteSVM::new();
@@ -49,5 +50,68 @@ mod tests {
         let result = svm.send_transaction(tx);
         assert!(result.is_ok(), "initialize failed: {:?}", result);
         println!("✓ initialize passed");
+        
+    }
+    #[test]
+    fn test_register_position() {
+        let mut svm = LiteSVM::new();
+        svm.add_program_from_file(
+            program::ID,
+            "../../target/deploy/program.so",
+        ).expect("Failed to load program");
+
+        let admin = Keypair::new();
+        svm.airdrop(&admin.pubkey(), 2_000_000_000).unwrap();
+
+        // Initialize first
+        let (config_pda, _) = Pubkey::find_program_address(&[b"config"], &program::ID);
+        let init_accounts = program::accounts::Initialize {
+            admin: admin.pubkey(),
+            config: config_pda,
+            system_program: system_program::ID,
+        };
+        let init_ix = solana_transaction::Instruction {
+            program_id: program::ID,
+            accounts: init_accounts.to_account_metas(None),
+            data: program::instruction::Initialize { yield_rate_bps: 500 }.data(),
+        };
+        let tx = Transaction::new_signed_with_payer(
+            &[init_ix],
+            Some(&admin.pubkey()),
+            &[&admin],
+            svm.latest_blockhash(),
+        );
+        svm.send_transaction(tx).unwrap();
+
+        // Now register a position
+        let mint = Pubkey::new_unique();
+        let (position_pda, _) = Pubkey::find_program_address(
+            &[b"position", admin.pubkey().as_ref(), mint.as_ref()],
+            &program::ID,
+        );
+        let reg_accounts = program::accounts::RegisterPosition {
+            owner: admin.pubkey(),
+            config: config_pda,
+            position: position_pda,
+            system_program: system_program::ID,
+        };
+        let reg_ix = solana_transaction::Instruction {
+            program_id: program::ID,
+            accounts: reg_accounts.to_account_metas(None),
+            data: program::instruction::RegisterPosition {
+                mint,
+                amount: 1_000_000_000,
+            }.data(),
+        };
+        let tx = Transaction::new_signed_with_payer(
+            &[reg_ix],
+            Some(&admin.pubkey()),
+            &[&admin],
+            svm.latest_blockhash(),
+        );
+
+        let result = svm.send_transaction(tx);
+        assert!(result.is_ok(), "register_position failed: {:?}", result);
+        println!("✓ register_position passed");
     }
 }

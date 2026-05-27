@@ -1,11 +1,10 @@
 use anchor_lang::prelude::*;
+use state::{GlobalConfig, UserPosition};
 
 pub mod constants;
 pub mod error;
 pub mod instructions;
 pub mod state;
-
-pub use state::*;
 
 declare_id!("BV7ScLttfAjpFG1GcgLJUi1kCW6Kd4iSDUabvdno2Bkv");
 
@@ -26,11 +25,36 @@ pub struct Initialize<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+#[instruction(mint: Pubkey)]
+pub struct RegisterPosition<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+
+    #[account(seeds = [b"config"], bump = config.bump)]
+    pub config: Account<'info, GlobalConfig>,
+
+    #[account(
+        init,
+        payer = owner,
+        space = UserPosition::LEN,
+        seeds = [b"position", owner.key().as_ref(), mint.as_ref()],
+        bump
+    )]
+    pub position: Account<'info, UserPosition>,
+
+    pub system_program: Program<'info, System>,
+}
+
 #[program]
 pub mod harvester {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>, yield_rate_bps: u64) -> Result<()> {
         instructions::initialize::handler(ctx, yield_rate_bps)
+    }
+
+    pub fn register_position(ctx: Context<RegisterPosition>, mint: Pubkey, amount: u64) -> Result<()> {
+        instructions::register_position::handler(ctx, mint, amount)
     }
 }
