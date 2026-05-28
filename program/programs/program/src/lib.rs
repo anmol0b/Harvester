@@ -46,6 +46,23 @@ pub struct RegisterPosition<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct ClaimYield<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+
+    #[account(seeds = [b"config"], bump = config.bump)]
+    pub config: Account<'info, GlobalConfig>,
+
+    #[account(
+        mut,
+        seeds = [b"position", owner.key().as_ref(), position.mint.as_ref()],
+        bump = position.bump,
+        has_one = owner
+    )]
+    pub position: Account<'info, UserPosition>,
+}
+
 #[program]
 pub mod harvester {
     use super::*;
@@ -56,5 +73,9 @@ pub mod harvester {
 
     pub fn register_position(ctx: Context<RegisterPosition>, mint: Pubkey, amount: u64) -> Result<()> {
         instructions::register_position::handler(ctx, mint, amount)
+    }
+
+    pub fn claim_yield(ctx: Context<ClaimYield>) -> Result<()> {
+        instructions::claim_yield::handler(ctx)
     }
 }

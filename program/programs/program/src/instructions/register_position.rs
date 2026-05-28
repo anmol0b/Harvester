@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::{state::UserPosition, RegisterPosition};
+use crate::RegisterPosition;
 
 pub fn handler(ctx: Context<RegisterPosition>, mint: Pubkey, amount: u64) -> Result<()> {
     require!(amount > 0, crate::error::ErrorCode::ZeroAmount);
