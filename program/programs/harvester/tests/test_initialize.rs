@@ -183,4 +183,90 @@ mod tests {
         assert!(result.is_ok(), "update_config failed: {:?}", result);
         println!("✓ update_config passed");
     }
+    #[test]
+    fn test_close_position() {
+        let mut svm = setup_svm();
+        let admin = Keypair::new();
+        let yield_mint = Keypair::new();
+        svm.airdrop(&admin.pubkey(), 2_000_000_000).unwrap();
+
+        let config_pda = do_initialize(&mut svm, &admin, &yield_mint);
+
+        // Register position
+        let mint = Pubkey::new_unique();
+        let (position_pda, _) = Pubkey::find_program_address(
+            &[b"position", admin.pubkey().as_ref(), mint.as_ref()],
+            &program::ID,
+        );
+        let reg_ix = solana_transaction::Instruction {
+            program_id: program::ID,
+            accounts: program::accounts::RegisterPosition {
+                owner: admin.pubkey(),
+                config: config_pda,
+                position: position_pda,
+                system_program: system_program::ID,
+            }.to_account_metas(None),
+            data: program::instruction::RegisterPosition {
+                mint,
+                amount: 1_000_000_000,
+            }.data(),
+        };
+        svm.send_transaction(Transaction::new_signed_with_payer(
+            &[reg_ix],
+            Some(&admin.pubkey()),
+            &[&admin],
+            svm.latest_blockhash(),
+        )).unwrap();
+
+        // Close position
+        let close_ix = solana_transaction::Instruction {
+            program_id: program::ID,
+            accounts: program::accounts::ClosePosition {
+                owner: admin.pubkey(),
+                position: position_pda,
+            }.to_account_metas(None),
+            data: program::instruction::ClosePosition {}.data(),
+        };
+        let result = svm.send_transaction(Transaction::new_signed_with_payer(
+            &[close_ix],
+            Some(&admin.pubkey()),
+            &[&admin],
+            svm.latest_blockhash(),
+        ));
+        assert!(result.is_ok(), "close_position failed: {:?}", result);
+        println!("✓ close_position passed");
+    }
+
+    #[test]
+    fn test_update_config_unauthorized() {
+        let mut svm = setup_svm();
+        let admin = Keypair::new();
+        let yield_mint = Keypair::new();
+        let rogue = Keypair::new();
+        svm.airdrop(&admin.pubkey(), 2_000_000_000).unwrap();
+        svm.airdrop(&rogue.pubkey(), 2_000_000_000).unwrap();
+
+        let config_pda = do_initialize(&mut svm, &admin, &yield_mint);
+
+        // Rogue tries to update config
+        let ix = solana_transaction::Instruction {
+            program_id: program::ID,
+            accounts: program::accounts::UpdateConfig {
+                admin: rogue.pubkey(),
+                config: config_pda,
+            }.to_account_metas(None),
+            data: program::instruction::UpdateConfig {
+                new_rate_bps: 9999,
+                paused: true,
+            }.data(),
+        };
+        let result = svm.send_transaction(Transaction::new_signed_with_payer(
+            &[ix],
+            Some(&rogue.pubkey()),
+            &[&rogue],
+            svm.latest_blockhash(),
+        ));
+        assert!(result.is_err(), "rogue should have been rejected");
+        println!("✓ unauthorized update_config correctly rejected");
+    }
 }
