@@ -160,7 +160,7 @@ pub mod harvester {
     pub fn update_config(ctx: Context<UpdateConfig>, new_rate_bps: u64, paused: bool) -> Result<()> {
         instructions::update_config::handler(ctx, new_rate_bps, paused)
     }
-    
+
     pub fn close_position(ctx: Context<ClosePosition>) -> Result<()> {
         instructions::close_position::handler(ctx)
     }

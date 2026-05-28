@@ -7,6 +7,7 @@ import {
   TopYielder,
 } from "./types";
 
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10,
@@ -17,6 +18,36 @@ const pool = new Pool({
 pool.on("error", (err) => {
   console.error("[db] Idle client error:", err.message);
 });
+
+
+function toTimestamp(val: unknown): number {
+  if (val === null || val === undefined) return 0;
+  if (typeof val === "number") return val;
+  if (typeof val === "bigint") return Number(val);
+  // BN object
+  if (typeof (val as any).toNumber === "function") return (val as any).toNumber();
+  // Fallback: parse string — handle both decimal and hex
+  const s = String(val);
+  return s.startsWith("0x") || /^[0-9a-f]+$/i.test(s)
+    ? parseInt(s, 16)
+    : parseInt(s, 10);
+}
+
+function toAmountString(val: unknown): string {
+  if (val === null || val === undefined) return "0";
+  if (typeof val === "bigint") return val.toString();
+  if (typeof val === "number") return val.toString();
+  // BN object
+  if (typeof (val as any).toString === "function") {
+    const s = (val as any).toString();
+    // If BN gave us hex, convert to decimal
+    if (/^[0-9a-f]+$/i.test(s) && !/^\d+$/.test(s)) {
+      return BigInt("0x" + s).toString();
+    }
+    return s;
+  }
+  return String(val);
+}
 
 
 async function rawQuery<T extends QueryResultRow = QueryResultRow>(
@@ -70,14 +101,14 @@ async function upsertPosition(
        last_claim_timestamp = EXCLUDED.last_claim_timestamp,
        updated_at           = NOW()`,
     [
-      event.owner,
-      event.mint,
-      event.amount.toString(),
+      event.owner.toString(),
+      event.mint.toString(),
+      toAmountString(event.amount),
       tierName(event.tier),
-      event.timestamp,
+      toTimestamp(event.timestamp),
     ],
   );
-  console.log(`[db] upsertPosition owner=${event.owner.slice(0, 8)}… mint=${event.mint.slice(0, 8)}…`);
+  console.log(`[db] upsertPosition owner=${event.owner.toString().slice(0, 8)}… mint=${event.mint.toString().slice(0, 8)}…`);
 }
 
 async function recordClaim(
@@ -91,15 +122,15 @@ async function recordClaim(
          (owner, mint, yield_amount, total_claimed_after, tx_signature, slot, claimed_at)
        VALUES ($1, $2, $3, $4, $5, $6, to_timestamp($7))
        ON CONFLICT (tx_signature) DO NOTHING`,
-      [
-        event.owner,
-        event.mint,
-        event.yieldAmount.toString(),
-        event.totalClaimed.toString(),
+       [
+        event.owner.toString(),
+        event.mint.toString(),
+        toAmountString(event.yieldAmount),
+        toAmountString(event.totalClaimed),
         txSignature,
         slot,
-        event.timestamp,
-      ],
+        toTimestamp(event.timestamp),
+    ],
     );
 
     await client.query(
@@ -121,6 +152,7 @@ async function markPositionClosed(event: PositionClosedEvent): Promise<void> {
   ]);
   console.log(`[db] markPositionClosed owner=${event.owner.slice(0, 8)}…`);
 }
+
 
 async function getPortfolio(wallet: string): Promise<PortfolioResponse> {
   const rows = await rawQuery(

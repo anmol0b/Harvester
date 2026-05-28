@@ -61,6 +61,7 @@ async function processLogs(
 export class WebSocketListener {
   private ws: WebSocket | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
+  private reconnectAttempts = 0;
 
   start(): void {
     this.connect();
@@ -71,8 +72,9 @@ export class WebSocketListener {
     this.ws = new WebSocket(RPC_WS);
 
     this.ws.on("open", () => {
-      console.log("[ws] Connected");
-      this.subscribe();
+        this.reconnectAttempts = 0;
+        console.log("[ws] Connected");
+        this.subscribe();
     });
 
     this.ws.on("message", (raw: WebSocket.RawData) => {
@@ -84,8 +86,10 @@ export class WebSocketListener {
     });
 
     this.ws.on("close", () => {
-      console.warn("[ws] Disconnected — reconnecting in 5s");
-      this.reconnectTimer = setTimeout(() => this.connect(), 5_000);
+        const delay = Math.min(1_000 * 2 ** this.reconnectAttempts, 30_000);
+        this.reconnectAttempts++;
+        console.warn(`[ws] Disconnected — reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+        this.reconnectTimer = setTimeout(() => this.connect(), delay);
     });
 
     this.ws.on("error", (err: Error) => {
