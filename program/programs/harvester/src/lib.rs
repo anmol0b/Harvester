@@ -2,7 +2,6 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token};
 use state::{GlobalConfig, UserPosition};
 
-pub mod constants;
 pub mod errors;
 pub mod instructions;
 pub mod state;
@@ -101,6 +100,21 @@ pub struct UpdateConfig<'info> {
     pub config: Account<'info, GlobalConfig>,
 }
 
+#[derive(Accounts)]
+pub struct ClosePosition<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+
+    #[account(
+        mut,
+        close = owner,
+        seeds = [b"position", owner.key().as_ref(), position.mint.as_ref()],
+        bump = position.bump,
+        has_one = owner
+    )]
+    pub position: Account<'info, UserPosition>,
+}
+
 #[event]
 pub struct PositionRegistered {
     pub owner: Pubkey,
@@ -145,5 +159,9 @@ pub mod harvester {
 
     pub fn update_config(ctx: Context<UpdateConfig>, new_rate_bps: u64, paused: bool) -> Result<()> {
         instructions::update_config::handler(ctx, new_rate_bps, paused)
+    }
+    
+    pub fn close_position(ctx: Context<ClosePosition>) -> Result<()> {
+        instructions::close_position::handler(ctx)
     }
 }
