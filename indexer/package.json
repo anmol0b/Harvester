@@ -1,0 +1,24 @@
+{
+  "name": "indexer",
+  "version": "0.1.0",
+  "description": "Harvester RWA yield protocol — event indexer",
+  "main": "dist/src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/index.js",
+    "dev": "./node_modules/.bin/ts-node-dev --respawn --transpile-only src/index.ts",
+    "db:migrate": "./node_modules/.bin/ts-node scripts/migrate.ts",
+    "db:check": "./node_modules/.bin/ts-node scripts/check-db.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "ts-node": "^10.9.2"
+  },
+  "dependencies": {
+    "@types/pg": "^8.20.0",
+    "pg": "^8.21.0"
+  }
+}
