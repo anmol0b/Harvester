@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token::{Mint, Token};
 use state::{GlobalConfig, UserPosition};
 
 pub mod constants;
@@ -22,6 +23,15 @@ pub struct Initialize<'info> {
     )]
     pub config: Account<'info, GlobalConfig>,
 
+    #[account(
+        init,
+        payer = admin,
+        mint::decimals = 6,
+        mint::authority = config,
+    )]
+    pub yield_mint: Account<'info, Mint>,
+
+    pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
 
@@ -61,8 +71,23 @@ pub struct ClaimYield<'info> {
         has_one = owner
     )]
     pub position: Account<'info, UserPosition>,
-}
 
+    #[account(mut, address = config.yield_mint)]
+    pub yield_mint: Account<'info, Mint>,
+
+    #[account(
+        init_if_needed,
+        payer = owner,
+        associated_token::mint = yield_mint,
+        associated_token::authority = owner,
+    )]
+    pub user_yield_ata: Account<'info, anchor_spl::token::TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, anchor_spl::associated_token::AssociatedToken>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+}
 #[derive(Accounts)]
 pub struct UpdateConfig<'info> {
     pub admin: Signer<'info>,
