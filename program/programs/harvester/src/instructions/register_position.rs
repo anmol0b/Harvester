@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::{RegisterPosition, error::ErrorCode, state::YieldTier};
+use crate::{RegisterPosition, errors::ErrorCode, state::YieldTier};
 
 pub fn handler(ctx: Context<RegisterPosition>, mint: Pubkey, amount: u64) -> Result<()> {
     require!(amount > 0, ErrorCode::ZeroAmount);
@@ -14,6 +14,13 @@ pub fn handler(ctx: Context<RegisterPosition>, mint: Pubkey, amount: u64) -> Res
     pos.total_claimed = 0;
     pos.tier = tier;
     pos.bump = ctx.bumps.position;
+    emit!(crate::PositionRegistered {
+        owner: pos.owner,
+        mint: pos.mint,
+        amount: pos.amount,
+        tier: tier.as_u8(),
+        timestamp: Clock::get()?.unix_timestamp,
+    });
 
     msg!("Position registered. Tier: {:?}, Amount: {}", tier, amount);
     Ok(())

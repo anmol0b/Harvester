@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, MintTo};
-use crate::{ClaimYield, error::ErrorCode, state::UserPosition};
+use crate::{ClaimYield, errors::ErrorCode, state::UserPosition};
 
 pub fn handler(ctx: Context<ClaimYield>) -> Result<()> {
     let config = &ctx.accounts.config;
@@ -39,6 +39,13 @@ pub fn handler(ctx: Context<ClaimYield>) -> Result<()> {
         .ok_or(ErrorCode::MathOverflow)?;
     pos.accrued_yield = 0;
     pos.last_claim_timestamp = now;
+    emit!(crate::YieldClaimed {
+        owner: pos.owner,
+        mint: pos.mint,
+        yield_amount,
+        total_claimed: pos.total_claimed,
+        timestamp: now,
+    });
 
     msg!("Yield claimed: {} tokens", yield_amount);
     Ok(())

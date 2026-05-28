@@ -3,11 +3,11 @@ use anchor_spl::token::{Mint, Token};
 use state::{GlobalConfig, UserPosition};
 
 pub mod constants;
-pub mod error;
+pub mod errors;
 pub mod instructions;
 pub mod state;
 
-declare_id!("BV7ScLttfAjpFG1GcgLJUi1kCW6Kd4iSDUabvdno2Bkv");
+declare_id!("AujdsDt1vs3RZ497KhoPxzKeRFghdEbjNKVqYSypEP1W");
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
@@ -99,6 +99,32 @@ pub struct UpdateConfig<'info> {
         has_one = admin
     )]
     pub config: Account<'info, GlobalConfig>,
+}
+
+#[event]
+pub struct PositionRegistered {
+    pub owner: Pubkey,
+    pub mint: Pubkey,
+    pub amount: u64,
+    pub tier: u8,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct YieldClaimed {
+    pub owner: Pubkey,
+    pub mint: Pubkey,
+    pub yield_amount: u64,
+    pub total_claimed: u64,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct ConfigUpdated {
+    pub admin: Pubkey,
+    pub old_rate_bps: u64,
+    pub new_rate_bps: u64,
+    pub timestamp: i64,
 }
 
 #[program]

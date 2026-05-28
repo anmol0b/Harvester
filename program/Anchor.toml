@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-program = "BV7ScLttfAjpFG1GcgLJUi1kCW6Kd4iSDUabvdno2Bkv"
+harvester = "BV7ScLttfAjpFG1GcgLJUi1kCW6Kd4iSDUabvdno2Bkv"
 
 [provider]
 cluster = "devnet"
