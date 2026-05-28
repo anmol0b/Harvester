@@ -196,4 +196,77 @@ mod tests {
         assert!(result.is_ok(), "claim_yield failed: {:?}", result);
         println!("✓ claim_yield passed");
     }
+    #[test]
+    fn test_update_config() {
+        let mut svm = LiteSVM::new();
+        svm.add_program_from_file(
+            program::ID,
+            "../../target/deploy/program.so",
+        ).expect("Failed to load program");
+
+        let admin = Keypair::new();
+        svm.airdrop(&admin.pubkey(), 1_000_000_000).unwrap();
+
+        // Initialize
+        let (config_pda, _) = Pubkey::find_program_address(&[b"config"], &program::ID);
+        let init_ix = solana_transaction::Instruction {
+            program_id: program::ID,
+            accounts: program::accounts::Initialize {
+                admin: admin.pubkey(),
+                config: config_pda,
+                system_program: system_program::ID,
+            }.to_account_metas(None),
+            data: program::instruction::Initialize { yield_rate_bps: 500 }.data(),
+        };
+        svm.send_transaction(Transaction::new_signed_with_payer(
+            &[init_ix],
+            Some(&admin.pubkey()),
+            &[&admin],
+            svm.latest_blockhash(),
+        )).unwrap();
+
+        // Update config
+        let update_ix = solana_transaction::Instruction {
+            program_id: program::ID,
+            accounts: program::accounts::UpdateConfig {
+                admin: admin.pubkey(),
+                config: config_pda,
+            }.to_account_metas(None),
+            data: program::instruction::UpdateConfig {
+                new_rate_bps: 750,
+                paused: false,
+            }.data(),
+        };
+        let result = svm.send_transaction(Transaction::new_signed_with_payer(
+            &[update_ix],
+            Some(&admin.pubkey()),
+            &[&admin],
+            svm.latest_blockhash(),
+        ));
+        assert!(result.is_ok(), "update_config failed: {:?}", result);
+
+        // Non-admin should fail
+        let rogue = Keypair::new();
+        svm.airdrop(&rogue.pubkey(), 1_000_000_000).unwrap();
+        let rogue_ix = solana_transaction::Instruction {
+            program_id: program::ID,
+            accounts: program::accounts::UpdateConfig {
+                admin: rogue.pubkey(),
+                config: config_pda,
+            }.to_account_metas(None),
+            data: program::instruction::UpdateConfig {
+                new_rate_bps: 9999,
+                paused: true,
+            }.data(),
+        };
+        let rogue_result = svm.send_transaction(Transaction::new_signed_with_payer(
+            &[rogue_ix],
+            Some(&rogue.pubkey()),
+            &[&rogue],
+            svm.latest_blockhash(),
+        ));
+        assert!(rogue_result.is_err(), "rogue should have failed");
+
+        println!("✓ update_config passed");
+    }
 }

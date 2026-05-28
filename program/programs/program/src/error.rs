@@ -10,4 +10,6 @@ pub enum ErrorCode {
     NoYieldAccrued,
     #[msg("Arithmetic overflow")]
     MathOverflow,
+    #[msg("Rate cannot exceed 10000 bps")]
+    InvalidRate,
 }

@@ -63,6 +63,19 @@ pub struct ClaimYield<'info> {
     pub position: Account<'info, UserPosition>,
 }
 
+#[derive(Accounts)]
+pub struct UpdateConfig<'info> {
+    pub admin: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"config"],
+        bump = config.bump,
+        has_one = admin
+    )]
+    pub config: Account<'info, GlobalConfig>,
+}
+
 #[program]
 pub mod harvester {
     use super::*;
@@ -77,5 +90,9 @@ pub mod harvester {
 
     pub fn claim_yield(ctx: Context<ClaimYield>) -> Result<()> {
         instructions::claim_yield::handler(ctx)
+    }
+
+    pub fn update_config(ctx: Context<UpdateConfig>, new_rate_bps: u64, paused: bool) -> Result<()> {
+        instructions::update_config::handler(ctx, new_rate_bps, paused)
     }
 }
