@@ -1,3 +1,5 @@
+// lib/constants.ts
+
 export const PROGRAM_ID =
   process.env.NEXT_PUBLIC_PROGRAM_ID ?? "AujdsDt1vs3RZ497KhoPxzKeRFghdEbjNKVqYSypEP1W";
 export const RPC_URL =
@@ -5,6 +7,7 @@ export const RPC_URL =
 export const INDEXER_URL =
   process.env.NEXT_PUBLIC_INDEXER_URL ?? "http://localhost:3001";
 
+// ── Tier ──────────────────────────────────────────────────────────────────────
 export type YieldTier = "Retail" | "Institutional" | "Wholesale";
 
 export const TIER_BONUS_BPS: Record<YieldTier, number> = {
@@ -13,14 +16,15 @@ export const TIER_BONUS_BPS: Record<YieldTier, number> = {
   Wholesale:     50,
 };
 
+// ── Raw indexer shapes (match exactly what the API returns) ───────────────────
 
 export interface IndexerPosition {
   id: number;
   owner: string;
   mint: string;
-  amount: string;
+  amount: string;               // NUMERIC → string
   tier: YieldTier;
-  last_claim_timestamp: string;
+  last_claim_timestamp: string; // ISO date string from pg
   total_claimed: string;
   accrued_yield: string;
   registered_at: string;
@@ -75,6 +79,7 @@ export interface IndexerLeader {
   rank: number;
 }
 
+// ── Enriched UI shapes (after mint lookup + number conversion) ────────────────
 
 export interface EnrichedPosition extends IndexerPosition {
   symbol: string;
@@ -94,9 +99,9 @@ export interface PortfolioData {
 }
 
 export interface YieldChartPoint {
-  date: string;
-  yield: number;
-  cumulative: number;
+  date: string;          // "YYYY-MM-DD"
+  yield: number;         // daily yield (UI units)
+  cumulative: number;    // running total (UI units)
 }
 
 export interface ProtocolStats {
@@ -125,6 +130,8 @@ export interface LeaderboardEntry {
   totalClaimed: number;
   positionCount: number;
 }
+
+// ── Utility helpers ───────────────────────────────────────────────────────────
 
 export function shortenAddress(addr: string, chars = 4): string {
   return `${addr.slice(0, chars)}…${addr.slice(-chars)}`;
@@ -159,18 +166,9 @@ export function computeApy(baseRateBps: number, tier: YieldTier): number {
   return (baseRateBps + TIER_BONUS_BPS[tier]) / 100;
 }
 import { PublicKey } from "@solana/web3.js";
-
 export const PROGRAM_ID_PUBKEY = new PublicKey(PROGRAM_ID);
-
-export const TOKEN_PROGRAM_ID = new PublicKey(
-  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-);
-export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey(
-  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-);
-export const SYSTEM_PROGRAM_ID = new PublicKey(
-  "11111111111111111111111111111111"
-);
-
-export const CONFIG_SEED   = Buffer.from("config");
+export const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+export const SYSTEM_PROGRAM_ID = new PublicKey("11111111111111111111111111111111");
+export const CONFIG_SEED = Buffer.from("config");
 export const POSITION_SEED = Buffer.from("position");

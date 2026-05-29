@@ -1,3 +1,5 @@
+// hooks/usePortfolio.ts
+
 import useSWR from "swr";
 import { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -18,12 +20,14 @@ import {
 } from "@/lib/constants";
 import { getMintInfoBatch } from "@/lib/mintRegistry";
 
+// ── Fetcher ───────────────────────────────────────────────────────────────────
 const fetcher = (url: string) =>
   fetch(url).then((r) => {
     if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
     return r.json();
   });
 
+// ── Mock data (shown while indexer is unreachable or wallet not connected) ────
 const MOCK_POSITIONS: EnrichedPosition[] = [
   {
     id: 1,
@@ -64,9 +68,9 @@ const MOCK_POSITIONS: EnrichedPosition[] = [
 ];
 
 const MOCK_CHART: YieldChartPoint[] = Array.from({ length: 30 }, (_, i) => ({
-  date: `Day ${i + 1}`,
-  yield: (i + 1) * 500,
-  cumulative: (i + 1) * 1800,
+  date: new Date(Date.now() - (29 - i) * 86400_000).toISOString().slice(0, 10),
+  yield: Math.round((i + 1) * 420 + Math.random() * 200),
+  cumulative: Math.round((i + 1) * 1_600 + Math.random() * 400),
 }));
 
 const MOCK_STATS: ProtocolStats = {
@@ -79,22 +83,21 @@ const MOCK_STATS: ProtocolStats = {
   yieldMint: "HRVSTmint1111111111111111111111111111111111",
 };
 
-const MOCK_LEADERBOARD: LeaderboardEntry[] = Array.from(
-  { length: 10 },
-  (_, i) => ({
-    rank: i + 1,
-    wallet: `MOCK${i + 1}...USER`,
-    totalClaimed: Math.round(50_000 * Math.exp(-i * 0.3)),
-    positionCount: Math.max(1, Math.round(8 - i * 0.6)),
-  })
-);
+const MOCK_LEADERBOARD: LeaderboardEntry[] = Array.from({ length: 10 }, (_, i) => ({
+  rank: i + 1,
+  wallet: `${Math.random().toString(36).slice(2, 6).toUpperCase()}…${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+  totalClaimed: Math.round(50_000 * Math.exp(-i * 0.3)),
+  positionCount: Math.max(1, Math.round(8 - i * 0.6)),
+}));
 
+// ── Chart builder from claim history ─────────────────────────────────────────
 function buildYieldChart(
   claims: IndexerHistoryResponse["claims"],
   decimals = 6,
 ): YieldChartPoint[] {
   if (!claims.length) return MOCK_CHART;
 
+  // Group by date
   const byDate = new Map<string, number>();
   for (const claim of claims) {
     const date = claim.claimed_at.slice(0, 10);
@@ -102,6 +105,7 @@ function buildYieldChart(
     byDate.set(date, (byDate.get(date) ?? 0) + amt);
   }
 
+  // Sort dates ascending
   const sorted = [...byDate.entries()].sort(([a], [b]) => a.localeCompare(b));
 
   let cumulative = 0;
@@ -111,6 +115,7 @@ function buildYieldChart(
   });
 }
 
+// ── usePortfolio ──────────────────────────────────────────────────────────────
 export function usePortfolio() {
   const { publicKey } = useWallet();
   const wallet = publicKey?.toBase58();
@@ -192,6 +197,7 @@ export function usePortfolio() {
   };
 }
 
+// ── useProtocolStats ──────────────────────────────────────────────────────────
 export function useProtocolStats() {
   const { data, error, isLoading } = useSWR<IndexerStatsResponse>(
     `${INDEXER_URL}/stats`,
@@ -219,6 +225,7 @@ export function useProtocolStats() {
   };
 }
 
+// ── useLeaderboard ────────────────────────────────────────────────────────────
 export function useLeaderboard() {
   const { data, isLoading, error } = useSWR<IndexerLeaderboardResponse>(
     `${INDEXER_URL}/yields/top?limit=10`,
@@ -238,6 +245,7 @@ export function useLeaderboard() {
   return { leaderboard, isLoading, isMock: !data, error };
 }
 
+// ── useClaimHistory ───────────────────────────────────────────────────────────
 export function useClaimHistory(page = 1, perPage = 10) {
   const { publicKey } = useWallet();
   const wallet = publicKey?.toBase58();
@@ -274,14 +282,14 @@ export function useClaimHistory(page = 1, perPage = 10) {
   }, [data]);
 
   const mockEntries: ClaimHistoryEntry[] = Array.from({ length: 12 }, (_, i) => ({
-  txSignature:  `${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`,
-  mint:         i % 2 === 0 ? "4zMMC..." : "RWAre111",
-  symbol:       i % 2 === 0 ? "USDC" : "RWA-RE",
-  yieldAmount:  Math.round((Math.random() * 2 + 0.5) * 100) / 100,
-  totalClaimed: Math.round((10_000 - i * 700) * 100) / 100,
-  timestamp:    Math.floor(Date.now() / 1000) - i * 86400,
-  slot:         465_000_000 - i * 400,
-}));
+    txSignature:  `${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`,
+    mint:         i % 2 === 0 ? "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU" : "RWAre111",
+    symbol:       i % 2 === 0 ? "USDC" : "RWA-RE",
+    yieldAmount:  Math.round((Math.random() * 2 + 0.5) * 100) / 100,
+    totalClaimed: Math.round((10_000 - i * 700) * 100) / 100,
+    timestamp:    Math.floor(Date.now() / 1000) - i * 86400,
+    slot:         465_000_000 - i * 400,
+  }));
 
   return {
     history:    entries.length ? { entries, total: data?.total_claims ?? 0 } : (wallet ? { entries: mockEntries, total: 12 } : null),
