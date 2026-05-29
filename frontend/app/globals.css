@@ -1,26 +1,64 @@
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap");
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --ink: #0a0800;
+  --gold: #b8860b;
+  --gold-light: #d4a017;
+  --gold-dark: #8b6508;
+  --gold-glow: #f0c040;
+  --text-primary: #e8d48a;
+  --text-secondary: #9a8050;
+  --text-dim: #5a4a28;
+  --border: rgba(184, 134, 11, 0.18);
+  --border-bright: rgba(184, 134, 11, 0.4);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--ink);
+  color: var(--text-primary);
+  font-family: "JetBrains Mono", monospace;
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(184, 134, 11, 0.3);
+  color: var(--gold-glow);
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0f0d02; }
+::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 2px; }
+.wallet-adapter-button {
+  font-family: "JetBrains Mono", monospace !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 0.08em !important;
+  background: transparent !important;
+  border: 1px solid var(--border-bright) !important;
+  color: var(--gold) !important;
+  border-radius: 2px !important;
+  height: 36px !important;
+  padding: 0 1rem !important;
+}
+
+.wallet-adapter-button:hover {
+  background: rgba(184, 134, 11, 0.1) !important;
+}
+
+.wallet-adapter-button-trigger {
+  background: var(--gold-dark) !important;
+  color: #0a0800 !important;
+  font-weight: 700 !important;
+  border: none !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  background: #141100 !important;
+  border: 1px solid var(--border-bright) !important;
+  border-radius: 4px !important;
+}
+
+.wallet-adapter-modal-title {
+  font-family: "Playfair Display", serif !important;
+  color: var(--gold-light) !important;
 }
