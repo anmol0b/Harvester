@@ -151,6 +151,7 @@ export class GrpcListener {
     const { default: Client } = await import("@triton-one/yellowstone-grpc");
 
     const client = new Client(endpoint, token ?? undefined, {
+      // @ts-ignore
       "grpc.max_receive_message_length": 64 * 1024 * 1024,
     });
 
@@ -172,7 +173,7 @@ export class GrpcListener {
           },
           commitment: 1, // CONFIRMED
         },
-        (err: Error | null) => (err ? reject(err) : resolve()),
+        (err: Error | null | undefined) => (err ? reject(err) : resolve()),
       );
     });
 

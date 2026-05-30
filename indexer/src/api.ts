@@ -22,7 +22,7 @@ export function createApp() {
       if (!wallet || wallet.length < 32) {
         return res.status(400).json({ error: "Invalid wallet address" });
       }
-      const portfolio = await db.getPortfolio(wallet);
+      const portfolio = await db.getPortfolio(wallet as string);
       res.json(portfolio);
     } catch (err) {
       console.error("[api] /portfolio error:", err);
@@ -36,7 +36,7 @@ export function createApp() {
       const page        = Math.max(1, parseInt(req.query.page as string) || 1);
       const perPage     = Math.min(100, parseInt(req.query.per_page as string) || 20);
 
-      const { claims, total } = await db.getHistory(wallet, page, perPage);
+      const { claims, total } = await db.getHistory(wallet as string, page, perPage);
       res.json({
         wallet,
         claims,
