@@ -34,11 +34,11 @@ export function useGlobalConfig() {
       const decoded = coder.accounts.decode("GlobalConfig", info.data);
       return {
         admin:        decoded.admin.toBase58(),
-        yieldRateBps: decoded.yieldRateBps.toNumber(),
-        yieldMint:    decoded.yieldMint.toBase58(),
+        yieldRateBps: decoded.yield_rate_bps.toNumber(),
+        yieldMint:    decoded.yield_mint.toBase58(),
         paused:       decoded.paused,
         bump:         decoded.bump,
-      };
+    };
     },
     { refreshInterval: 60_000 },
   );

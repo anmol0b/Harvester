@@ -79,7 +79,7 @@ function PositionCard({
           {/* Claim button */}
           <button
             onClick={() => onClaim(pos.mint, yieldMint)}
-            disabled={claimPending || pos.accruedYieldUi <= 0}
+            disabled={claimPending || pos.accruedYieldUi <= 0 || !yieldMint}
             style={{
               fontSize: "0.6rem",
               letterSpacing: "0.1em",
@@ -171,6 +171,10 @@ export default function PositionsPage() {
   useEffect(() => setMounted(true), []);
 
   async function handleClaim(mint: string, yieldMint: string) {
+    if (!yieldMint) {
+      alert("Protocol config not loaded — is the program initialized on devnet?");
+      return;
+    }
     setActiveMint(mint);
     await claimYield(mint, yieldMint);
     await refresh();
