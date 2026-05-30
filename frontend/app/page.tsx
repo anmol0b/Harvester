@@ -6,7 +6,7 @@ import { useProtocolStats } from "@/hooks/usePortfolio";
 
 function Counter({ value, duration = 2000 }: { value: number; duration?: number }) {
   const [display, setDisplay] = useState(0);
-  const raf = useRef<number>();
+  const raf = useRef<number | null>(null);
 
   useEffect(() => {
     const start = Date.now();
