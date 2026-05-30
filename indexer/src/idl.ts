@@ -1,5 +1,5 @@
 import { Idl } from "@coral-xyz/anchor";
-import rawIdl from "../../harvester.json";
+import rawIdl from "../harvester.json";
 
 export const IDL = rawIdl as Idl;
 

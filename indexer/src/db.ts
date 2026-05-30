@@ -7,18 +7,17 @@ import {
   TopYielder,
 } from "./types";
 
-
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
+  ssl: { rejectUnauthorized: false },
 });
 
 pool.on("error", (err) => {
   console.error("[db] Idle client error:", err.message);
 });
-
 
 function toTimestamp(val: unknown): number {
   if (val === null || val === undefined) return 0;
