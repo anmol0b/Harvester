@@ -1,141 +1,293 @@
-# 🌾 Harvester — RWA Yield Protocol on Solana
+# 🌾 Harvester — Permissionless RWA Yield Harvester on Solana
 
-A non-custodial yield protocol for tokenized real-world assets built on Solana. Register RWA positions, accrue HRVST yield every second, and claim on-chain — no intermediaries, no custody.
+**Register any tokenized asset • Accrue yield • Claim on-chain with one click.**
 
-**Live Demo**: https://harvester-beta.vercel.app  
-**Indexer**: https://harvester-indexer-latest.onrender.com
+**Live Demo:** https://harvester-beta.vercel.app  
+**Program ID (Devnet):** `AujdsDt1vs3RZ497KhoPxzKeRFghdEbjNKVqYSypEP1W`  
+**Video Demo:** *Add your Loom link here*
 
 ---
 
-## What it does
+## What Makes Harvester Unique
 
-Harvester lets users register tokenized real-world asset positions (real estate, T-bills, private credit) and earn HRVST tokens as yield. Yield accrues continuously based on:
+While protocols like Ondo Finance offer excellent single-asset tokenized Treasury products (USDY/OUSG) with automatic yield accrual, **Harvester** takes a different approach.
 
-- Position size
-- Yield tier (Retail / Institutional / Wholesale)
-- Time elapsed since last claim
-- Protocol yield rate (set by admin, currently 5% APY)
+### Why Harvester?
 
-### Yield Tiers
-| Tier | Threshold | Bonus |
-|------|-----------|-------|
-| Retail | < 1M tokens | +0 bps |
-| Institutional | ≥ 1M tokens | +20 bps |
-| Wholesale | ≥ 10M tokens | +50 bps |
+- **Fully Permissionless** — Register any SPL token as an RWA position.
+- **Explicit On-Chain Claims** — Users decide exactly when to harvest accrued yield.
+- **Personal Multi-Asset Portfolio** — Manage multiple tokenized assets from one dashboard.
+- **Built End-to-End** — Anchor smart contract, custom indexer, and modern frontend.
+
+Harvester acts as your **personal on-chain RWA yield engine**.
+
+---
+
+## Features
+
+- Register any SPL token mint as an RWA position
+- Time-based yield accrual
+- One-click on-chain yield claims
+- Real-time portfolio dashboard
+- Event-driven indexing
+- Responsive wallet-connected UI
+- Devnet deployed and fully functional
+
+---
+
+## How It Works
+
+### User Flow
+
+1. **Connect Wallet**
+   - Phantom
+   - Solflare
+   - Backpack
+
+2. **Register Position**
+   - Enter an SPL token mint address
+   - Specify an amount
+   - Creates a `UserPosition` PDA
+
+3. **Yield Accrues**
+   - Yield is calculated based on elapsed time since the last claim
+
+4. **Claim Yield**
+   - Execute the `claim_yield` instruction
+   - Tokens are transferred on-chain
+
+5. **Portfolio Updates**
+   - The indexer captures emitted events
+   - Dashboard updates automatically
+
+---
+
+## On-Chain Logic
+
+### `register_position`
+
+Creates a PDA uniquely derived from:
+
+- User wallet
+- Token mint
+
+Stores:
+
+- Owner
+- Mint
+- Principal amount
+- Last claim timestamp
+
+### `claim_yield`
+
+- Calculates accrued yield
+- Transfers rewards through CPI to the Token Program
+- Updates claim timestamp
+- Emits claim events for indexing
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Notes |
+|---------|-----------|---------|
+| Program | Anchor (Rust) | PDAs, CPI, Events |
+| Frontend | Next.js 15 + Tailwind CSS | Modern UI |
+| Wallets | Solana Wallet Adapter | Phantom, Solflare, Backpack |
+| Indexer | TypeScript | Event polling and processing |
+| Database | Supabase (PostgreSQL) | Indexed portfolio storage |
+| Network | Solana Devnet | Deployment environment |
 
 ---
 
 ## Architecture
 
-### Add Architecture here 
+```mermaid
+graph TD
+    A[User Wallet]
+    B[Next.js Frontend]
+    C[Anchor Program]
+    D[UserPosition PDA]
+    E[Token Program CPI]
+    F[Indexer Service]
+    G[Supabase PostgreSQL]
 
-### Stack
-- **Program**: Anchor 0.32 on Solana Devnet
-- **Frontend**: Next.js 15, TypeScript, Tailwind CSS, `@coral-xyz/anchor`, SWR
-- **Indexer**: Node.js + TypeScript, Express, PostgreSQL (Supabase), polling mode
-- **Deployment**: Vercel (frontend), Render (indexer), Supabase (DB)
-
----
-
-## Program
-
-**Program ID**: `AujdsDt1vs3RZ497KhoPxzKeRFghdEbjNKVqYSypEP1W`  
-**Network**: Solana Devnet
-
-### Instructions
-| Instruction | Description |
-|-------------|-------------|
-| `initialize(yield_rate_bps)` | Creates GlobalConfig PDA, initializes HRVST mint |
-| `register_position(mint, amount)` | Creates UserPosition PDA for a given RWA mint |
-| `claim_yield()` | Mints accrued HRVST tokens to user's ATA |
-| `close_position()` | Closes position PDA, refunds rent |
-| `update_config(new_rate_bps, paused)` | Admin-only config update |
-
-### Accounts
-- **GlobalConfig** PDA — seeds: `["config"]`
-- **UserPosition** PDA — seeds: `["position", owner, mint]`
-
----
----
-
-## Local Setup
-
-### Prerequisites
-- Node.js 20+, Bun
-- Rust + Anchor CLI
-- Solana CLI
-- PostgreSQL or Supabase account
-
-### 1. Clone
-```bash
-git clone https://github.com/anmol0b/harvester
-cd harvester
+    A --> B
+    B --> C
+    C --> D
+    C --> E
+    B --> F
+    F --> G
 ```
 
-### 2. Program (already deployed on devnet — skip if not modifying)
+---
+
+## Quick Start
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/anmol0b/Harvester.git
+cd Harvester
+```
+
+### 2. Program Setup
+
 ```bash
 cd program
+
 anchor build
 anchor deploy --provider.cluster devnet
 ```
 
-### 3. Indexer
+After deployment, update the frontend with the new Program ID if necessary.
+
+### 3. Indexer Setup
+
 ```bash
-cd indexer
+cd ../indexer
+
 npm install
+
 cp .env.example .env
-# Fill in DATABASE_URL, RPC_HTTP, PROGRAM_ID
-npm run db:migrate
+```
+
+Add your Supabase credentials:
+
+```env
+SUPABASE_URL=YOUR_SUPABASE_URL
+SUPABASE_ANON_KEY=YOUR_SUPABASE_KEY
+```
+
+Start the indexer:
+
+```bash
 npm run dev
 ```
 
-### 4. Frontend
+### 4. Frontend Setup
+
 ```bash
-cd frontend
-bun install
-cp .env.local.example .env.local
-# Fill in NEXT_PUBLIC_RPC_URL, NEXT_PUBLIC_INDEXER_URL, NEXT_PUBLIC_PROGRAM_ID
-bun run dev
+cd ../frontend
+
+npm install
+npm run dev
 ```
 
-Open `http://localhost:3000`
+Open:
+
+```text
+http://localhost:3000
+```
 
 ---
 
-## Environment Variables
+## Demo Walkthrough
 
-### Indexer `.env`
+### Dashboard
 
-### Frontend `.env.local`
+View all registered positions and accumulated yield.
 
----
+### Register Position
 
-## API Endpoints
+Create a new position using any SPL token mint.
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /health` | Health check |
-| `GET /portfolio/:wallet` | Positions + TVL for a wallet |
-| `GET /history/:wallet` | Paginated claim history |
-| `GET /yields/top` | Leaderboard |
-| `GET /stats` | Protocol-wide stats |
-| `GET /position/:wallet/:mint` | Single position |
+### Claim Yield
+
+Harvest accrued yield directly on-chain through a single transaction.
 
 ---
 
-## Roadmap
-- [ ] Rewrite program in Pinocchio for lower compute costs
-- [ ] Rewrite indexer in Rust with gRPC (Yellowstone) support
-- [ ] Mainnet deployment
-- [ ] Real RWA mint integrations
-- [ ] Governance for yield rate updates
+## Screenshots
+
+### Dashboard
+
+![Dashboard](./screenshots/dashboard.png)
+
+### Register Position
+
+![Register Position](./screenshots/register-position.png)
+
+### Claim Yield
+
+![Claim Yield](./screenshots/claim-yield.png)
 
 ---
 
-## Built for Solana India Fellowship — Capstone 2025
+## Future Roadmap
 
-Built from scratch in 2 weeks:
-- Custom Anchor program with 5 instructions
-- TypeScript indexer polling devnet
-- Next.js frontend with real-time yield tracking
-- Full deployment pipeline (Vercel + Render + Supabase)
+### Performance
+
+- Integrate Pinocchio zero-copy accounts
+- Optimize yield calculation paths
+
+### Real-Time Infrastructure
+
+- Upgrade to Yellowstone gRPC streaming
+- Replace polling-based indexing
+
+### Oracle Integrations
+
+- Integrate Pyth price feeds
+- Dynamic yield rates
+
+### Analytics
+
+- Yield history tracking
+- Portfolio performance charts
+- Notifications and alerts
+
+---
+
+## Project Structure
+
+```text
+Harvester
+├── frontend
+│   ├── app
+│   ├── components
+│   └── hooks
+│
+├── program
+│   ├── programs
+│   └── tests
+│
+├── indexer
+│   ├── src
+│   └── database
+│
+└── README.md
+```
+
+---
+
+## Development Status
+
+- ✅ Smart Contract Deployed
+- ✅ Frontend Live
+- ✅ Indexer Operational
+- ✅ Devnet Ready
+
+---
+
+## Built For
+
+**Solana India Fellowship Capstone Project**  
+May 2026
+
+**Author:** Anmol Bhardwaj
+
+- GitHub: https://github.com/anmol0b
+- X (Twitter): https://x.com/anmol0b
+
+---
+
+## Questions or Feedback?
+
+Feel free to:
+
+- Open a GitHub issue
+- Reach out on X (@anmol0b)
+- Connect through the project repository
+
+Contributions, feedback, and ideas are always welcome.
