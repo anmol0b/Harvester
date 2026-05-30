@@ -79,7 +79,7 @@ function RegisterModal({
           <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-dim)", cursor: "pointer", fontSize: "1rem" }}>✕</button>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "var(--border)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "var(--ink)" }}>
           <StatCard label="APY" value={`${apy}%`} />
           <StatCard label="Min Tier" value={pool.minTier} />
         </div>
@@ -161,7 +161,7 @@ export default function DiscoverPage() {
       </div>
 
       {/* Protocol stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", background: "var(--border)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", background: "var(--ink)" }}>
         <StatCard label="Protocol TVL"     value={`$${formatAmount(stats.totalTvl, 0)}`}      />
         <StatCard label="Total Harvested"  value={`$${formatAmount(stats.totalClaimed, 0)}`}   />
         <StatCard label="Positions"        value={stats.totalPositions.toLocaleString()}        />
@@ -173,7 +173,7 @@ export default function DiscoverPage() {
         <div style={{ fontSize: "0.6rem", letterSpacing: "0.16em", color: "var(--text-dim)", marginBottom: "1rem" }}>
           AVAILABLE POOLS
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "1px", background: "var(--border)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "1px", background: "var(--ink)" }}>
           {DEMO_POOLS.map((pool) => {
             const apy = ((stats.currentRateBps + TIER_BONUS_BPS[pool.minTier]) / 100).toFixed(2);
             return (
@@ -212,7 +212,7 @@ export default function DiscoverPage() {
                     letterSpacing: "0.12em", fontFamily: "JetBrains Mono",
                     background: publicKey ? "transparent" : "transparent",
                     color: publicKey ? "var(--gold)" : "var(--text-dim)",
-                    border: `1px solid ${publicKey ? "var(--border-bright)" : "var(--border)"}`,
+                    border: `1px solid ${publicKey ? "var(--border-bright)" : "var(--ink)"}`,
                     cursor: publicKey ? "pointer" : "not-allowed",
                   }}
                 >
@@ -225,9 +225,9 @@ export default function DiscoverPage() {
       </div>
 
       {/* Leaderboard */}
-      <div style={{ border: "1px solid var(--border)" }}>
+      <div style={{ border: "1px solid var(--ink)" }}>
         <div style={{
-          padding: "0.75rem 1.25rem", borderBottom: "1px solid var(--border)",
+          padding: "0.75rem 1.25rem", borderBottom: "1px solid var(--ink)",
           display: "flex", justifyContent: "space-between", alignItems: "center",
         }}>
           <span style={{ fontSize: "0.6rem", letterSpacing: "0.16em", color: "var(--text-dim)" }}>LEADERBOARD</span>
@@ -237,7 +237,7 @@ export default function DiscoverPage() {
         {/* Table header */}
         <div style={{
           display: "grid", gridTemplateColumns: "2rem 1fr 1fr 1fr",
-          padding: "0.5rem 1.25rem", borderBottom: "1px solid var(--border)",
+          padding: "0.5rem 1.25rem", borderBottom: "1px solid var(--ink)",
           fontSize: "0.55rem", letterSpacing: "0.14em", color: "var(--text-dim)",
           background: "rgba(184,134,11,0.02)",
         }}>
@@ -251,7 +251,7 @@ export default function DiscoverPage() {
           <div key={i} style={{
             display: "grid", gridTemplateColumns: "2rem 1fr 1fr 1fr",
             padding: "0.75rem 1.25rem",
-            borderBottom: i < leaderboard.length - 1 ? "1px solid var(--border)" : "none",
+            borderBottom: i < leaderboard.length - 1 ? "1px solid var(--ink)" : "none",
             fontSize: "0.7rem", alignItems: "center",
           }}>
             <span style={{ color: i < 3 ? "var(--gold-light)" : "var(--text-dim)", fontWeight: i < 3 ? 600 : 400 }}>

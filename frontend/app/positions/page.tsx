@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { usePortfolio } from "@/hooks/usePortfolio";
@@ -8,6 +8,7 @@ import { useGlobalConfig } from "@/hooks/useGlobalConfig";
 import { useHarvester } from "@/hooks/useHarvester";
 import TierBadge from "@/components/TierBadge";
 import { EnrichedPosition, formatDate, formatAmount } from "@/lib/constants";
+
 
 function PositionCard({
   pos,
@@ -25,6 +26,7 @@ function PositionCard({
   closePending: boolean;
 }) {
   const [confirmClose, setConfirmClose] = useState(false);
+  
 
   return (
     <div style={{ border: "1px solid var(--border)", background: "rgba(184,134,11,0.02)" }}>
@@ -48,7 +50,7 @@ function PositionCard({
       </div>
 
       {/* Stats grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1px", background: "var(--border)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1px", background: "var(--ink)" }}>
         {[
           { label: "DEPOSITED",    value: formatAmount(pos.amountUi, 0),           unit: pos.symbol },
           { label: "ACCRUED",      value: pos.accruedYieldUi.toFixed(6),           unit: "HRVST"    },
@@ -164,8 +166,9 @@ export default function PositionsPage() {
   const { portfolio, isLoading, refresh } = usePortfolio();
   const { config } = useGlobalConfig();
   const { claimYield, closePosition, claimTx, closeTx } = useHarvester();
-
   const [activeMint, setActiveMint] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   async function handleClaim(mint: string, yieldMint: string) {
     setActiveMint(mint);
@@ -187,7 +190,7 @@ export default function PositionsPage() {
         <div style={{ fontFamily: "Playfair Display, serif", color: "var(--gold-light)", fontSize: "1.1rem" }}>
           Connect your wallet to view positions
         </div>
-        <WalletMultiButton />
+        {mounted && <WalletMultiButton />}
       </div>
     );
   }
@@ -263,7 +266,7 @@ export default function PositionsPage() {
       )}
 
       {/* Position cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: "1px", background: "var(--border)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: "1px", background: "var(--ink)" }}>
         {portfolio?.positions.map((pos) => (
           <PositionCard
             key={pos.id}
