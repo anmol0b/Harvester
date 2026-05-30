@@ -79,7 +79,7 @@ function PositionCard({
           {/* Claim button */}
           <button
             onClick={() => onClaim(pos.mint, yieldMint)}
-            disabled={claimPending || pos.accruedYieldUi <= 0 || !yieldMint}
+            disabled={claimPending || !yieldMint}
             style={{
               fontSize: "0.6rem",
               letterSpacing: "0.1em",
