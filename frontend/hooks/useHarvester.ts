@@ -66,9 +66,12 @@ export function useHarvester() {
   const getProgram = useCallback(() => {
     if (!wallet.publicKey || !wallet.signTransaction) return null;
     const provider = new anchor.AnchorProvider(
-      connection,
-      wallet as anchor.Wallet,
-      { commitment: "confirmed", preflightCommitment: "confirmed" }
+        connection,
+        wallet as unknown as anchor.Wallet,
+        {
+            commitment: "confirmed",
+            preflightCommitment: "confirmed",
+        }
     );
     return new anchor.Program(HARVESTER_IDL, provider);
   }, [connection, wallet]);
