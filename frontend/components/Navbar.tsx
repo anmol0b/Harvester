@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useState, useEffect } from "react";
+
 
 const NAV_LINKS = [
   { href: "/", label: "Dashboard" },
@@ -13,6 +15,8 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <header style={{
@@ -59,7 +63,7 @@ export default function Navbar() {
       </nav>
 
       {/* Wallet */}
-      <WalletMultiButton />
+      {mounted && <WalletMultiButton />}
     </header>
   );
 }

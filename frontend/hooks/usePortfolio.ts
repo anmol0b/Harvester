@@ -69,8 +69,8 @@ const MOCK_POSITIONS: EnrichedPosition[] = [
 
 const MOCK_CHART: YieldChartPoint[] = Array.from({ length: 30 }, (_, i) => ({
   date: new Date(Date.now() - (29 - i) * 86400_000).toISOString().slice(0, 10),
-  yield: Math.round((i + 1) * 420 + Math.random() * 200),
-  cumulative: Math.round((i + 1) * 1_600 + Math.random() * 400),
+  yield: (i + 1) * 420,
+  cumulative: (i + 1) * 1600,
 }));
 
 const MOCK_STATS: ProtocolStats = {
@@ -83,12 +83,18 @@ const MOCK_STATS: ProtocolStats = {
   yieldMint: "HRVSTmint1111111111111111111111111111111111",
 };
 
-const MOCK_LEADERBOARD: LeaderboardEntry[] = Array.from({ length: 10 }, (_, i) => ({
-  rank: i + 1,
-  wallet: `${Math.random().toString(36).slice(2, 6).toUpperCase()}…${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
-  totalClaimed: Math.round(50_000 * Math.exp(-i * 0.3)),
-  positionCount: Math.max(1, Math.round(8 - i * 0.6)),
-}));
+const MOCK_LEADERBOARD: LeaderboardEntry[] = [
+  { rank: 1, wallet: "U0M6…NP06", totalClaimed: 50000, positionCount: 8 },
+  { rank: 2, wallet: "FBNB…9F10", totalClaimed: 37041, positionCount: 7 },
+  { rank: 3, wallet: "5YPY…M924", totalClaimed: 27441, positionCount: 7 },
+  { rank: 4, wallet: "M8TE…CI73", totalClaimed: 20328, positionCount: 6 },
+  { rank: 5, wallet: "XKRD…4A21", totalClaimed: 15012, positionCount: 5 },
+  { rank: 6, wallet: "9QWP…BB03", totalClaimed: 11089, positionCount: 4 },
+  { rank: 7, wallet: "RVZL…7F55", totalClaimed: 8201,  positionCount: 3 },
+  { rank: 8, wallet: "2HNT…E812", totalClaimed: 6070,  positionCount: 3 },
+  { rank: 9, wallet: "JWAK…C349", totalClaimed: 4491,  positionCount: 2 },
+  { rank: 10, wallet: "PLMQ…A177", totalClaimed: 3323, positionCount: 1 },
+];
 
 // ── Chart builder from claim history ─────────────────────────────────────────
 function buildYieldChart(

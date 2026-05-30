@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { usePortfolio, useProtocolStats, useLeaderboard } from "@/hooks/usePortfolio";
@@ -15,6 +16,8 @@ export default function Dashboard() {
   const { portfolio, isLoading, isMock } = usePortfolio();
   const { leaderboard } = useLeaderboard();
   const { config } = useGlobalConfig();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
@@ -41,7 +44,7 @@ export default function Dashboard() {
       </div>
 
       {/* Protocol Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", background: "var(--border)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", background: "var(--ink)" }}>
         <StatCard label="Total TVL"        value={`$${formatAmount(stats.totalTvl, 0)}`}       sub="across all positions" />
         <StatCard label="Yield Claimed"    value={`$${formatAmount(stats.totalClaimed, 0)}`}    sub="cumulative harvested" />
         <StatCard label="Active Positions" value={stats.totalPositions.toLocaleString()}        sub="registered on-chain" />
@@ -50,14 +53,14 @@ export default function Dashboard() {
 
       {/* Portfolio or connect CTA */}
       {publicKey ? (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "var(--border)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "var(--ink)" }}>
           <div style={{ background: "var(--ink)", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             <div style={{ fontSize: "0.6rem", letterSpacing: "0.16em", color: "var(--text-dim)" }}>YOUR PORTFOLIO</div>
             {isLoading ? (
               <div style={{ color: "var(--text-dim)", fontSize: "0.7rem" }}>LOADING…</div>
             ) : portfolio ? (
               <>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "var(--border)" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "var(--ink)" }}>
                   <StatCard label="Your TVL"     value={`$${formatAmount(portfolio.tvlUi, 0)}`}    />
                   <StatCard label="Total Earned" value={`$${portfolio.totalClaimedUi.toFixed(4)}`} />
                 </div>
@@ -112,7 +115,7 @@ export default function Dashboard() {
           <div style={{ color: "var(--text-dim)", fontSize: "0.65rem", maxWidth: "360px", lineHeight: 1.8 }}>
             Register RWA positions, track accrued yield, and harvest HRVST tokens directly from your wallet.
           </div>
-          <WalletMultiButton />
+          {mounted && <WalletMultiButton />}
         </div>
       )}
 
